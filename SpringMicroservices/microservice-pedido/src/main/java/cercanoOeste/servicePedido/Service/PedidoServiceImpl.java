@@ -1,10 +1,10 @@
 package cercanoOeste.servicePedido.Service;
 
-import cercanoOeste.servicePedido.DTOS.DTOConfirmacion;
-import cercanoOeste.servicePedido.DTOS.DTOPagoRealizado;
-import cercanoOeste.servicePedido.DTOS.DTOPedidoAconfirmar;
+import cercanoOeste.servicePedido.DTOS.*;
+import cercanoOeste.servicePedido.Entity.DetallePedido;
 import cercanoOeste.servicePedido.Entity.EstadoPedido;
 import cercanoOeste.servicePedido.Entity.Pedido;
+import cercanoOeste.servicePedido.Product.ProductClient;
 import cercanoOeste.servicePedido.Repository.BaseRepository;
 import cercanoOeste.servicePedido.Repository.EstadoPedidoRepository;
 import cercanoOeste.servicePedido.Repository.PedidoRepository;
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,8 @@ public class PedidoServiceImpl extends BaseServiceImpl<Pedido,Long> implements P
     PedidoRepository pedidoRepository;
     @Autowired
     EstadoPedidoRepository estadoPedidoRepository;
+    @Autowired
+    private ProductClient productClient;
 
     public PedidoServiceImpl(BaseRepository<Pedido, Long> baseRepository, PedidoRepository pedidoServiceRepository) {
         super(baseRepository);
@@ -97,10 +100,31 @@ public class PedidoServiceImpl extends BaseServiceImpl<Pedido,Long> implements P
 
     //Buscar pedidos a confirmar
     @Override
-    public List<Pedido> BusquedaPedidos() throws Exception {
+    public List<DTOPedido> BusquedaPedidos() throws Exception {
         try {
             List<Pedido> pedidosaconfir = pedidoRepository.BusquedaPedidos();
-            return pedidosaconfir;
+            List<DTODetallePedido> detallesDTO = new ArrayList<>();
+            List<DTOPedido> pedidosDTO = new ArrayList<>();
+            for (Pedido pedido : pedidosaconfir) {
+               DTOPedido pedidoDTO = new DTOPedido();
+               pedidoDTO.setNroPedido(pedido.getId());
+               pedidoDTO.setDireccion(pedido.getDireccionEntrega());
+               pedidoDTO.setTipoEnvio(pedido.getTipoEnvio());
+               pedidoDTO.setMonto(pedido.getMontoTotal());
+               List<DetallePedido> detalles = pedido.getDetalles();
+               for (DetallePedido detallePedido : detalles){
+                   DTODetallePedido detalleDTO = new DTODetallePedido();
+                   detalleDTO.setCantidad(detallePedido.getCantidadProducto());
+                   Long productid = detallePedido.getProductId();
+                   DTOProducto producto = productClient.getProducto(productid);
+                   detalleDTO.setNombreProducto(producto.getNombre());
+                   detallesDTO.add(detalleDTO);
+               }
+                pedidoDTO.setDetalles(detallesDTO);
+                pedidosDTO.add(pedidoDTO);
+            }
+            return pedidosDTO;
+          //  return pedidosaconfir;
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }

@@ -2,6 +2,7 @@ package cercanoOeste.servicePedido.Service;
 
 import cercanoOeste.servicePedido.DTOS.DTOConfirmacion;
 import cercanoOeste.servicePedido.DTOS.DTOPagoRealizado;
+import cercanoOeste.servicePedido.DTOS.DTOPedido;
 import cercanoOeste.servicePedido.DTOS.DTOPedidoAconfirmar;
 import cercanoOeste.servicePedido.Entity.Pedido;
 
@@ -14,7 +15,7 @@ public interface PedidoService extends BaseService<Pedido,Long>{
     Pedido AceptarPedidoDelivery(Long id,int demora, int costoEnvio)throws Exception;
 
     Pedido AceptarPedidoTakeAway(Long id, int demora) throws Exception;
-    List<Pedido> BusquedaPedidos() throws Exception;
+    List<DTOPedido> BusquedaPedidos() throws Exception;
     DTOConfirmacion ConfirmarPedido(Long id) throws Exception;
 
     void cancelarPedido(Long id) throws Exception;
